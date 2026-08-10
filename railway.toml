@@ -3,7 +3,7 @@ builder = "RAILPACK"
 buildCommand = "npm run build"
 
 [deploy]
-preDeployCommand = "npm run prisma:migrate:deploy"
+preDeployCommand = "npm run prisma:migrate:deploy && npm run admin:reset"
 startCommand = "npm run start"
 healthcheckPath = "/"
 healthcheckTimeout = 120
