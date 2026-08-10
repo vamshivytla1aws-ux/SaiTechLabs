@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { readJsonBody } from "@/lib/api";
 import { requireAdminApi } from "@/lib/admin-auth";
+import { can } from "@/lib/admin-permissions";
 import { adminError, sameOrigin } from "@/lib/admin-security";
 import { getDb } from "@/lib/db";
 
@@ -10,6 +11,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!sameOrigin(request)) return adminError(403, "Invalid request.");
   const admin = await requireAdminApi();
   if (!admin) return adminError(401, "Unauthorized.");
+  if (!can(admin.role, "admissions:manage")) return adminError(403, "Forbidden.");
   const { id } = await params;
   try {
     const parsed = schema.safeParse(await readJsonBody(request));

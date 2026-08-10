@@ -1,4 +1,5 @@
 import { requireAdminApi } from "@/lib/admin-auth";
+import { can } from "@/lib/admin-permissions";
 import { admissionOrder, admissionWhere } from "@/lib/admin-query";
 import { getDb } from "@/lib/db";
 import { adminError, writeAudit } from "@/lib/admin-security";
@@ -11,6 +12,7 @@ function csvCell(value: unknown) {
 
 export async function GET(request: Request) {
   const admin = await requireAdminApi(); if (!admin) return adminError(401, "Unauthorized.");
+  if (!can(admin.role, "reports:view") && !can(admin.role, "admissions:manage")) return adminError(403, "Forbidden.");
   try {
     const url = new URL(request.url); const params = Object.fromEntries(url.searchParams.entries());
     const rows = await getDb().admission.findMany({ where: admissionWhere(params), orderBy: admissionOrder(params.sort), take: 10000 });

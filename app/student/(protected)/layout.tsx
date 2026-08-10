@@ -1,0 +1,1 @@
+import { StudentShell } from "@/components/student/StudentShell"; import { requireStudent } from "@/lib/student-auth";export const dynamic="force-dynamic";export default async function Layout({children}:{children:React.ReactNode}){const account=await requireStudent();return <StudentShell name={account.student.fullName}>{children}</StudentShell>}

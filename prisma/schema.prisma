@@ -30,20 +30,131 @@ enum TrainingMode {
 enum AdminRole {
   SUPER_ADMIN
   ADMIN
+  COUNSELOR
+  ACCOUNTANT
+  TRAINER
 }
 
 enum AdminAuditAction {
   LOGIN
   LOGOUT
+  ADMIN_CREATED
+  ADMIN_UPDATED
+  ROLE_CHANGED
   ADMISSION_STATUS_CHANGED
+  ADMISSION_UPDATED
   NOTE_ADDED
   CONTACT_STATUS_CHANGED
+  STUDENT_CREATED
+  STUDENT_UPDATED
+  ENROLLMENT_CREATED
+  ENROLLMENT_UPDATED
+  PAYMENT_CREATED
+  PAYMENT_UPDATED
+  PAYMENT_REFUNDED
+  ATTENDANCE_UPDATED
+  STATUS_LINK_CREATED
+  STATUS_LINK_REVOKED
+  FEEDBACK_LINK_CREATED
+  FEEDBACK_MODERATED
+  CERTIFICATE_CREATED
+  CERTIFICATE_REVOKED
+  COURSE_UPDATED
+  BATCH_UPDATED
+  TRAINER_UPDATED
   EXPORT_CREATED
   PASSWORD_CHANGED
 }
 
+enum BatchMode {
+  CLASSROOM
+  ONLINE
+  HYBRID
+}
+
+enum BatchStatus {
+  PLANNED
+  OPEN
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum EnrollmentStatus {
+  PENDING
+  CONFIRMED
+  ENROLLED
+  ACTIVE
+  COMPLETED
+  DROPPED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  BANK_TRANSFER
+  CARD
+  OTHER
+}
+
+enum PaymentRecordStatus {
+  RECEIVED
+  PENDING
+  FAILED
+  REFUNDED
+}
+
+enum TrainerAssignmentRole {
+  LEAD_TRAINER
+  TRAINER
+  MENTOR
+  GUEST
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum PublicLinkType {
+  ENROLLMENT_STATUS
+  STUDENT_FEEDBACK
+  COLLEGE_FEEDBACK
+  CERTIFICATE_VERIFY
+}
+
+enum FeedbackSource {
+  PUBLIC
+  STUDENT
+  COLLEGE
+}
+
+enum FeedbackCategory {
+  GENERAL
+  TRAINING
+  WEBSITE
+  COUNSELING
+  OTHER
+}
+
+enum FeedbackModerationStatus {
+  NEW
+  REVIEWED
+  APPROVED
+  REJECTED
+}
+
+enum CertificateStatus {
+  DRAFT
+  ISSUED
+  REVOKED
+}
+
 model Admission {
-  id              String          @id @default(cuid())
+  id              String              @id @default(cuid())
   studentName     String
   email           String
   phone           String
@@ -56,18 +167,24 @@ model Admission {
   trainingMode    TrainingMode
   message         String?
   consent         Boolean
-  leadStatus      LeadStatus      @default(NEW)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  leadStatus      LeadStatus          @default(NEW)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
   nextFollowUpAt  DateTime?
   lastContactedAt DateTime?
+  assignedAdminId String?
   notes           AdmissionNote[]
+  assignedAdmin   AdminUser?          @relation("AssignedAdmissions", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  followUps       AdmissionFollowUp[]
+  enrollment      Enrollment?
 
   @@index([createdAt])
   @@index([phone])
   @@index([email])
   @@index([course])
   @@index([leadStatus])
+  @@index([assignedAdminId])
+  @@index([nextFollowUpAt])
 }
 
 model ContactEnquiry {
@@ -87,20 +204,335 @@ model ContactEnquiry {
 }
 
 model AdminUser {
-  id             String          @id @default(cuid())
-  name           String
-  email          String          @unique
-  passwordHash   String
-  role           AdminRole       @default(ADMIN)
-  isActive       Boolean         @default(true)
-  sessionVersion Int             @default(0)
-  lastLoginAt    DateTime?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  notes          AdmissionNote[]
-  auditLogs      AdminAuditLog[]
+  id                 String              @id @default(cuid())
+  name               String
+  email              String              @unique
+  passwordHash       String
+  role               AdminRole           @default(ADMIN)
+  isActive           Boolean             @default(true)
+  sessionVersion     Int                 @default(0)
+  lastLoginAt        DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  notes              AdmissionNote[]
+  auditLogs          AdminAuditLog[]
+  assignedAdmissions Admission[]         @relation("AssignedAdmissions")
+  followUps          AdmissionFollowUp[]
+  payments           Payment[]
+  studentNotes       StudentNote[]
+  trainerProfile     Trainer?
 
   @@index([isActive])
+}
+
+model Course {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  shortDescription String
+  description      String
+  durationDays     Int
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  batches          Batch[]
+
+  @@index([isActive, name])
+}
+
+model Batch {
+  id                 String              @id @default(cuid())
+  courseId           String
+  name               String
+  code               String              @unique
+  startDate          DateTime
+  endDate            DateTime
+  mode               BatchMode
+  capacity           Int
+  status             BatchStatus         @default(PLANNED)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  course             Course              @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  enrollments        Enrollment[]
+  trainerAssignments TrainerAssignment[]
+  attendanceSessions AttendanceSession[]
+  feedback           Feedback[]
+  publicLinks        PublicLink[]
+
+  @@index([courseId, status])
+  @@index([startDate])
+}
+
+model Student {
+  id             String             @id @default(cuid())
+  studentCode    String             @unique
+  fullName       String
+  email          String
+  phone          String
+  qualification  String
+  graduationYear Int
+  collegeName    String
+  state          String
+  currentStatus  String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  enrollments    Enrollment[]
+  attendance     AttendanceRecord[]
+  feedback       Feedback[]
+  certificates   Certificate[]
+  publicLinks    PublicLink[]
+  account        StudentAccount?
+  notes          StudentNote[]
+
+  @@index([fullName])
+  @@index([email])
+  @@index([phone])
+  @@index([collegeName])
+  @@index([createdAt])
+}
+
+model Enrollment {
+  id                String           @id @default(cuid())
+  studentId         String
+  batchId           String
+  sourceAdmissionId String?          @unique
+  status            EnrollmentStatus @default(PENDING)
+  enrolledAt        DateTime         @default(now())
+  completedAt       DateTime?
+  courseFee         Decimal          @db.Decimal(12, 2)
+  discount          Decimal          @default(0) @db.Decimal(12, 2)
+  finalFee          Decimal          @db.Decimal(12, 2)
+  notes             String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  student           Student          @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  batch             Batch            @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  sourceAdmission   Admission?       @relation(fields: [sourceAdmissionId], references: [id], onDelete: SetNull)
+  payments          Payment[]
+  feedback          Feedback[]
+  certificates      Certificate[]
+  publicLinks       PublicLink[]
+
+  @@unique([studentId, batchId])
+  @@index([batchId, status])
+  @@index([studentId, status])
+  @@index([enrolledAt])
+}
+
+model Payment {
+  id               String              @id @default(cuid())
+  enrollmentId     String
+  amount           Decimal             @db.Decimal(12, 2)
+  paymentDate      DateTime
+  paymentMethod    PaymentMethod
+  referenceNumber  String?
+  status           PaymentRecordStatus @default(RECEIVED)
+  notes            String?
+  createdByAdminId String
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  enrollment       Enrollment          @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
+  createdBy        AdminUser           @relation(fields: [createdByAdminId], references: [id], onDelete: Restrict)
+
+  @@index([enrollmentId, paymentDate])
+  @@index([paymentDate])
+  @@index([status])
+}
+
+model Trainer {
+  id                 String              @id @default(cuid())
+  adminUserId        String?             @unique
+  name               String
+  email              String              @unique
+  phone              String
+  specialization     String
+  bio                String?
+  experienceSummary  String?
+  isActive           Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  assignments        TrainerAssignment[]
+  attendanceSessions AttendanceSession[]
+  adminUser          AdminUser?          @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+
+  @@index([isActive, name])
+}
+
+model TrainerAssignment {
+  id         String                @id @default(cuid())
+  trainerId  String
+  batchId    String
+  role       TrainerAssignmentRole
+  assignedAt DateTime              @default(now())
+  trainer    Trainer               @relation(fields: [trainerId], references: [id], onDelete: Restrict)
+  batch      Batch                 @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@unique([trainerId, batchId, role])
+  @@index([batchId])
+}
+
+model AttendanceSession {
+  id          String             @id @default(cuid())
+  batchId     String
+  sessionDate DateTime
+  topic       String
+  trainerId   String?
+  createdAt   DateTime           @default(now())
+  batch       Batch              @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  trainer     Trainer?           @relation(fields: [trainerId], references: [id], onDelete: SetNull)
+  records     AttendanceRecord[]
+
+  @@index([batchId, sessionDate])
+  @@index([trainerId])
+}
+
+model AttendanceRecord {
+  id        String            @id @default(cuid())
+  sessionId String
+  studentId String
+  status    AttendanceStatus
+  notes     String?
+  session   AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student   Student           @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  @@unique([sessionId, studentId])
+  @@index([studentId])
+}
+
+model PublicLink {
+  id           String         @id @default(cuid())
+  type         PublicLinkType
+  tokenHash    String         @unique
+  studentId    String?
+  enrollmentId String?
+  batchId      String?
+  collegeName  String?
+  showAmounts  Boolean        @default(false)
+  singleUse    Boolean        @default(false)
+  isActive     Boolean        @default(true)
+  expiresAt    DateTime?
+  usedAt       DateTime?
+  revokedAt    DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  student      Student?       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  enrollment   Enrollment?    @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  batch        Batch?         @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  feedback     Feedback[]
+
+  @@index([studentId, type])
+  @@index([enrollmentId, type])
+  @@index([batchId, type])
+  @@index([type, isActive])
+  @@index([expiresAt])
+}
+
+model Feedback {
+  id                   String                   @id @default(cuid())
+  source               FeedbackSource
+  category             FeedbackCategory?
+  studentId            String?
+  enrollmentId         String?
+  batchId              String?
+  publicLinkId         String?
+  respondentName       String?
+  respondentEmail      String?
+  collegeName          String?
+  coordinatorName      String?
+  designation          String?
+  trainerQuality       Int?
+  technicalContent     Int?
+  practicalSessions    Int?
+  courseMaterial       Int?
+  communication        Int?
+  interviewPreparation Int?
+  courseRelevance      Int?
+  studentParticipation Int?
+  overallRating        Int
+  liked                String?
+  improvements         String?
+  comments             String?
+  wouldRecommend       Boolean?
+  permissionToPublish  Boolean                  @default(false)
+  consent              Boolean
+  moderationStatus     FeedbackModerationStatus @default(NEW)
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  student              Student?                 @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  enrollment           Enrollment?              @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+  batch                Batch?                   @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  publicLink           PublicLink?              @relation(fields: [publicLinkId], references: [id], onDelete: SetNull)
+
+  @@index([source, moderationStatus])
+  @@index([batchId])
+  @@index([createdAt])
+}
+
+model Certificate {
+  id                    String            @id @default(cuid())
+  studentId             String
+  enrollmentId          String
+  certificateNumber     String            @unique
+  issuedAt              DateTime?
+  status                CertificateStatus @default(DRAFT)
+  verificationTokenHash String            @unique
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  student               Student           @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  enrollment            Enrollment        @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
+
+  @@unique([studentId, enrollmentId])
+  @@index([status, issuedAt])
+}
+
+model StudentAccount {
+  id                 String    @id @default(cuid())
+  studentId          String    @unique
+  email              String    @unique
+  passwordHash       String
+  isActive           Boolean   @default(true)
+  mustChangePassword Boolean   @default(true)
+  sessionVersion     Int       @default(0)
+  lastLoginAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  student            Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([isActive])
+}
+
+model StudentNote {
+  id               String    @id @default(cuid())
+  studentId        String
+  note             String
+  createdByAdminId String
+  createdAt        DateTime  @default(now())
+  student          Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdBy        AdminUser @relation(fields: [createdByAdminId], references: [id], onDelete: Restrict)
+
+  @@index([studentId, createdAt])
+}
+
+model AdmissionFollowUp {
+  id               String    @id @default(cuid())
+  admissionId      String
+  scheduledAt      DateTime
+  completedAt      DateTime?
+  note             String?
+  createdByAdminId String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  admission        Admission @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  createdBy        AdminUser @relation(fields: [createdByAdminId], references: [id], onDelete: Restrict)
+
+  @@index([scheduledAt, completedAt])
+  @@index([admissionId])
+}
+
+model SystemCounter {
+  key       String   @id
+  value     Int      @default(0)
+  updatedAt DateTime @updatedAt
 }
 
 model AdmissionNote {

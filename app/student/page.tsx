@@ -1,0 +1,1 @@
+import { redirect } from "next/navigation"; import { getAuthenticatedStudent } from "@/lib/student-auth";export const dynamic="force-dynamic";export default async function StudentIndex(){redirect(await getAuthenticatedStudent()?"/student/dashboard":"/student/login")}

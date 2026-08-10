@@ -1,0 +1,3 @@
+import type { Metadata } from "next"; import { FeedbackForm } from "@/components/operations/FeedbackForm"; import { PageHero } from "@/components/PageHero";
+export const metadata:Metadata={title:"Feedback",description:"Share feedback with SaiTech Labs.",alternates:{canonical:"/feedback"}};
+export default function FeedbackPage(){return <><PageHero eyebrow="Feedback" title="Help us improve the SaiTech Labs experience." description="Your feedback helps us strengthen training, counseling and our website."/><section className="section"><div className="narrow-container container"><FeedbackForm endpoint="/api/feedback"/></div></section></>}

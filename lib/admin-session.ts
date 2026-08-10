@@ -1,12 +1,14 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import type { AdminRole } from "@/generated/prisma/enums";
 
 export const ADMIN_COOKIE = "saitech_admin_session";
 const ISSUER = "https://www.saitechlabs.in";
 const AUDIENCE = "saitechlabs-admin";
 const SESSION_SECONDS = 8 * 60 * 60;
 
-export type AdminSession = { adminId: string; email: string; name: string; role: "SUPER_ADMIN" | "ADMIN"; sessionVersion: number };
+const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN", "COUNSELOR", "ACCOUNTANT", "TRAINER"] as const;
+export type AdminSession = { adminId: string; email: string; name: string; role: AdminRole; sessionVersion: number };
 
 function sessionKey() {
   const secret = process.env.AUTH_SECRET;
@@ -24,8 +26,8 @@ export async function verifyAdminSession(token?: string | null): Promise<AdminSe
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, sessionKey(), { issuer: ISSUER, audience: AUDIENCE, algorithms: ["HS256"] });
-    if (!payload.sub || typeof payload.email !== "string" || typeof payload.name !== "string" || (payload.role !== "SUPER_ADMIN" && payload.role !== "ADMIN") || typeof payload.sv !== "number") return null;
-    return { adminId: payload.sub, email: payload.email, name: payload.name, role: payload.role, sessionVersion: payload.sv };
+    if (!payload.sub || typeof payload.email !== "string" || typeof payload.name !== "string" || !ADMIN_ROLES.includes(payload.role as AdminRole) || typeof payload.sv !== "number") return null;
+    return { adminId: payload.sub, email: payload.email, name: payload.name, role: payload.role as AdminRole, sessionVersion: payload.sv };
   } catch { return null; }
 }
 
