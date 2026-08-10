@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, BrainCircuit, BriefcaseBusiness, Cloud, CodeXml, Database, GitBranch, GraduationCap, MessageSquareText, Mic2, PhoneCall, Rocket, Sparkles, Target, UserRoundCheck } from "lucide-react";
 import { CTASection } from "@/components/CTASection";
@@ -7,6 +8,8 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { TrainerCard } from "@/components/TrainerCard";
 import { courses } from "@/data/courses";
 import { trainers } from "@/data/trainers";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const values = [{ value: "60", suffix: "Days", label: "Intensive Program" }, { value: "Industry", suffix: "Experts", label: "Experienced Trainers" }, { value: "Hands-On", suffix: "Learning", label: "Practical Approach" }, { value: "Career", suffix: "Ready", label: "Interview Preparation" }];
 const features = [

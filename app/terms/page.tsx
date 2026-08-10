@@ -1,4 +1,4 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/LegalPage";
-export const metadata: Metadata = { title: "Terms" };
+export const metadata: Metadata = { title: "Terms", alternates: { canonical: "/terms" } };
 export default function TermsPage() { return <LegalPage title="Website Terms" description="Terms for using the SaiTech Labs website." sections={[{ title: "Website information", body: "This website provides general information about SaiTech Labs and its training focus. Program details may be refined as official schedules and curricula are confirmed." }, { title: "Acceptable use", body: "You may use this website to learn about SaiTech Labs and contact the organization. Website content may not be misrepresented as an official employment, placement or salary guarantee." }, { title: "Changes", body: "SaiTech Labs may update website content and these terms when services or program information changes." }]} />; }

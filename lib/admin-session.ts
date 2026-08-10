@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 export const ADMIN_COOKIE = "saitech_admin_session";
-const ISSUER = "saitechlabs.in";
+const ISSUER = "https://www.saitechlabs.in";
 const AUDIENCE = "saitechlabs-admin";
 const SESSION_SECONDS = 8 * 60 * 60;
 
