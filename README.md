@@ -56,6 +56,8 @@ npm run admin:create
 
 The command requires `DATABASE_URL` and the three `INITIAL_ADMIN_*` variables. It refuses to create another account if an administrator already exists, hashes the password, and never prints it. Change the temporary password immediately from `/admin/settings`.
 
+For an authorised account-recovery operation, temporarily provide `RESET_ADMIN_CURRENT_EMAIL`, `RESET_ADMIN_EMAIL`, and `RESET_ADMIN_PASSWORD`, then run `npm run admin:reset`. This updates only the matching administrator, enforces the `SUPER_ADMIN` role, reactivates the account, rotates the password, invalidates all sessions, and records an audit event. Remove the temporary variables immediately afterward.
+
 Never run `prisma migrate reset`, `db push --force-reset`, or destructive SQL against Railway production.
 
 ## Validation
