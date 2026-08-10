@@ -9,7 +9,7 @@ import { TrainerCard } from "@/components/TrainerCard";
 import { courses } from "@/data/courses";
 import { trainers } from "@/data/trainers";
 
-export const metadata: Metadata = { alternates: { canonical: "/" } };
+export const metadata: Metadata = { alternates: { canonical: "https://www.saitechlabs.in/" } };
 
 const values = [{ value: "60", suffix: "Days", label: "Intensive Program" }, { value: "Industry", suffix: "Experts", label: "Experienced Trainers" }, { value: "Hands-On", suffix: "Learning", label: "Practical Approach" }, { value: "Career", suffix: "Ready", label: "Interview Preparation" }];
 const features = [
