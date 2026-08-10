@@ -18,7 +18,7 @@ export function TrainerCard({ trainer }: { trainer: Trainer }) {
   );
 
   return <>
-    <article className={`trainer-card${trainer.featured ? " trainer-card-featured" : ""}`}>
+    <article className={`trainer-card premium-card-interaction${trainer.featured ? " trainer-card-featured" : ""}`}>
       <div className="trainer-photo">
         {portrait("(max-width: 600px) 100vw, (max-width: 820px) 50vw, 33vw")}
         <div className="trainer-accent" />
