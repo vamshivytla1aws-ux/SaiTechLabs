@@ -22,7 +22,7 @@ export const trainers: Trainer[] = [
       "Mentor & Motivational Speaker",
     ],
     summary: "Founder of SaiTech Labs and an experienced technology professional, trainer, mentor, and motivational speaker.",
-    image: "/images/trainers/machha.png",
+    image: "/images/trainers/machha-v2.png",
     featured: true,
   },
   {
@@ -43,7 +43,7 @@ export const trainers: Trainer[] = [
     expertise: ["OLTP", "Databases", "Corporate Training"],
     highlights: ["Specialist in OLTP Database"],
     summary: "A database specialist with deep corporate experience and practical expertise in OLTP systems.",
-    image: "/images/trainers/ramesh.png",
+    image: "/images/trainers/ramesh-v2.png",
   },
   {
     name: "Pradeep",
@@ -63,6 +63,6 @@ export const trainers: Trainer[] = [
     expertise: ["Big Data", "Administration", "Motivational Speaking"],
     highlights: ["Expert in Big Data Administration", "Motivational Speaker"],
     summary: "A big data administration expert who combines technical instruction with motivational guidance.",
-    image: "/images/trainers/srini.png",
+    image: "/images/trainers/srini-v2.png",
   },
 ];
