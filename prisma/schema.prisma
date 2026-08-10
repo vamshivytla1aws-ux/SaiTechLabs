@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  FOLLOW_UP
+  JOINED
+  NOT_INTERESTED
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
+enum TrainingMode {
+  CLASSROOM
+  ONLINE
+  EITHER
+}
+
+model Admission {
+  id             String       @id @default(cuid())
+  studentName    String
+  email          String
+  phone          String
+  course         String
+  qualification  String
+  currentStatus  String
+  graduationYear Int
+  collegeName    String
+  state          String
+  trainingMode   TrainingMode
+  message        String?
+  consent        Boolean
+  leadStatus     LeadStatus   @default(NEW)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([createdAt])
+  @@index([phone])
+  @@index([email])
+  @@index([course])
+  @@index([leadStatus])
+}
+
+model ContactEnquiry {
+  id        String        @id @default(cuid())
+  name      String
+  phone     String
+  email     String
+  message   String
+  status    EnquiryStatus @default(NEW)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([createdAt])
+  @@index([phone])
+  @@index([email])
+  @@index([status])
+}

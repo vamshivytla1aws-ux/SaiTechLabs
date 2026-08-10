@@ -1,0 +1,4 @@
+import type { Metadata } from "next";
+import { LegalPage } from "@/components/LegalPage";
+export const metadata: Metadata = { title: "Privacy Policy" };
+export default function PrivacyPage() { return <LegalPage title="Privacy Policy" description="How SaiTech Labs approaches information shared through this website." sections={[{ title: "Information you provide", body: "Information voluntarily submitted through the Admissions and Contact forms may be stored and used by SaiTech Labs to respond to training enquiries and provide relevant program information." }, { title: "How information is handled", body: "SaiTech Labs limits form information to the details needed to understand and respond to an enquiry. Please avoid sharing sensitive personal information in optional message fields." }, { title: "Contact", body: "For questions about privacy or this website, contact SaiTech Labs at +91 94939 69696." }]} />; }

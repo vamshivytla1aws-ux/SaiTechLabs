@@ -1,0 +1,2 @@
+import { PageHero } from "./PageHero";
+export function LegalPage({ title, description, sections }: { title: string; description: string; sections: { title: string; body: string }[] }) { return <><PageHero eyebrow="SaiTech Labs" title={title} description={description} /><section className="section"><div className="container legal-copy">{sections.map(s => <section key={s.title}><h2>{s.title}</h2><p>{s.body}</p></section>)}</div></section></>; }
