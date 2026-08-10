@@ -27,23 +27,41 @@ enum TrainingMode {
   EITHER
 }
 
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
+enum AdminAuditAction {
+  LOGIN
+  LOGOUT
+  ADMISSION_STATUS_CHANGED
+  NOTE_ADDED
+  CONTACT_STATUS_CHANGED
+  EXPORT_CREATED
+  PASSWORD_CHANGED
+}
+
 model Admission {
-  id             String       @id @default(cuid())
-  studentName    String
-  email          String
-  phone          String
-  course         String
-  qualification  String
-  currentStatus  String
-  graduationYear Int
-  collegeName    String
-  state          String
-  trainingMode   TrainingMode
-  message        String?
-  consent        Boolean
-  leadStatus     LeadStatus   @default(NEW)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id              String          @id @default(cuid())
+  studentName     String
+  email           String
+  phone           String
+  course          String
+  qualification   String
+  currentStatus   String
+  graduationYear  Int
+  collegeName     String
+  state           String
+  trainingMode    TrainingMode
+  message         String?
+  consent         Boolean
+  leadStatus      LeadStatus      @default(NEW)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  nextFollowUpAt  DateTime?
+  lastContactedAt DateTime?
+  notes           AdmissionNote[]
 
   @@index([createdAt])
   @@index([phone])
@@ -66,4 +84,50 @@ model ContactEnquiry {
   @@index([phone])
   @@index([email])
   @@index([status])
+}
+
+model AdminUser {
+  id             String          @id @default(cuid())
+  name           String
+  email          String          @unique
+  passwordHash   String
+  role           AdminRole       @default(ADMIN)
+  isActive       Boolean         @default(true)
+  sessionVersion Int             @default(0)
+  lastLoginAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  notes          AdmissionNote[]
+  auditLogs      AdminAuditLog[]
+
+  @@index([isActive])
+}
+
+model AdmissionNote {
+  id               String    @id @default(cuid())
+  admissionId      String
+  note             String
+  createdByAdminId String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  admission        Admission @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  createdBy        AdminUser @relation(fields: [createdByAdminId], references: [id], onDelete: Restrict)
+
+  @@index([admissionId, createdAt])
+  @@index([createdByAdminId])
+}
+
+model AdminAuditLog {
+  id         String           @id @default(cuid())
+  adminId    String
+  action     AdminAuditAction
+  entityType String?
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime         @default(now())
+  admin      AdminUser        @relation(fields: [adminId], references: [id], onDelete: Restrict)
+
+  @@index([adminId, createdAt])
+  @@index([action, createdAt])
+  @@index([entityType, entityId])
 }

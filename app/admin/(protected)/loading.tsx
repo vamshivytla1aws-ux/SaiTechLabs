@@ -1,0 +1,1 @@
+export default function Loading(){return <div className="admin-page"><div className="admin-skeleton heading"/><div className="admin-metrics">{[1,2,3,4].map(v=><div className="admin-skeleton card" key={v}/>)}</div><div className="admin-skeleton table"/></div>}

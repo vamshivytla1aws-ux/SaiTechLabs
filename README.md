@@ -1,25 +1,32 @@
 # SaiTech Labs Website
 
-Official SaiTech Labs website for `https://www.saitechlabs.in`. Phase 2 adds a Railway-hosted Next.js server and PostgreSQL persistence for admission and contact enquiries. The custom domain remains unchanged until a later approved phase.
+Official website and private staff admin portal for `https://www.saitechlabs.in`. The application is a single Next.js deployment backed by Railway PostgreSQL.
 
 ## Architecture
 
-- Next.js 16 App Router with TypeScript and Tailwind CSS
-- Server route handlers: `POST /api/admissions` and `POST /api/contact`
-- Prisma ORM with the PostgreSQL driver adapter
-- Railway project with `Web` and `Postgres` services
-- Browser forms call same-origin APIs; browsers never receive database credentials
-- Future admin-compatible models exist, but no `/admin` routes or authentication are implemented
+- Next.js 16 App Router, TypeScript and Tailwind CSS
+- Prisma ORM with PostgreSQL driver adapter
+- Public submission APIs: `POST /api/admissions` and `POST /api/contact`
+- Private portal under `/admin`, protected by a signed, HttpOnly, SameSite session cookie
+- Passwords hashed with bcrypt (cost 12); no browser storage or client-side database access
+- Railway `Web` and `Postgres` services; migrations run as the Web pre-deploy command
+- GitHub `main` is connected to Railway automatic deployments
+
+The admin portal includes live dashboard metrics, searchable/filterable/paginated leads, lead statuses and follow-ups, append-only internal notes, contact enquiry management, safe filtered CSV export, audit events, password change and logout. It is excluded from robots and is not linked from the public navigation.
 
 ## Environment
 
-Copy `.env.example` to `.env.local` and replace the placeholder locally:
+Copy `.env.example` to `.env.local` and replace placeholders. Never commit real credentials.
 
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
+AUTH_SECRET="a-cryptographically-random-secret-of-at-least-32-characters"
+INITIAL_ADMIN_NAME="SaiTech Labs Administrator"
+INITIAL_ADMIN_EMAIL="admin@example.com"
+INITIAL_ADMIN_PASSWORD="a-strong-temporary-password"
 ```
 
-Never commit real credentials. Railway supplies `DATABASE_URL` to the Web service through a service reference variable.
+`AUTH_SECRET` is required for admin sessions. Railway should supply `DATABASE_URL` through a Postgres service reference and store `AUTH_SECRET` as a private Web service variable. The three `INITIAL_ADMIN_*` values are only needed while running the one-time bootstrap command and do not need to remain configured.
 
 ## Local development
 
@@ -29,7 +36,27 @@ npm run prisma:generate
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Open `http://localhost:3000`. Public pages remain at their existing routes; the admin sign-in is `/admin/login`.
+
+## Database and initial administrator
+
+Create migrations against a development database, commit them, and apply them without resetting production data:
+
+```bash
+npx prisma migrate dev --name descriptive_name
+npm run prisma:migrate:deploy
+npm run prisma:migrate:status
+```
+
+After the admin migration is applied, create the first administrator once:
+
+```bash
+npm run admin:create
+```
+
+The command requires `DATABASE_URL` and the three `INITIAL_ADMIN_*` variables. It refuses to create another account if an administrator already exists, hashes the password, and never prints it. Change the temporary password immediately from `/admin/settings`.
+
+Never run `prisma migrate reset`, `db push --force-reset`, or destructive SQL against Railway production.
 
 ## Validation
 
@@ -40,55 +67,10 @@ npm run lint
 npm run build
 ```
 
-## Database migrations
+Verify unauthenticated `/admin` and `/api/admin/*` protection; valid and invalid sign-in; status, follow-up and note workflows; contact status; filtered CSV; password change and session invalidation; logout; and both public forms. CSV deliberately excludes internal notes and neutralises spreadsheet formulas.
 
-Create migrations only in a development database:
+## Deployment
 
-```bash
-npx prisma migrate dev --name descriptive_name
-```
+Push a reviewed commit to GitHub `main`. Railway automatically builds the linked Web service, runs `npm run prisma:migrate:deploy`, and then starts Next.js. Check the Railway deployment health and the temporary Railway URL before making any separately approved DNS or custom-domain changes.
 
-Apply committed migrations safely in Railway or another production environment:
-
-```bash
-npm run prisma:migrate:deploy
-npm run prisma:migrate:status
-```
-
-`railway.toml` runs `prisma migrate deploy` as a pre-deploy command. Never use database reset commands against Railway production data.
-
-## Railway setup and deployment
-
-The Railway project contains:
-
-- `Web`: standard Next.js Node server
-- `Postgres`: Railway PostgreSQL
-
-The Web service requires a `DATABASE_URL` reference to the Postgres service. Deploy from the linked directory with:
-
-```bash
-railway up --service Web
-```
-
-Generate a Railway temporary domain for Phase 2 testing only. Do not connect the Hostinger-managed custom domain in this phase.
-
-## APIs
-
-### `POST /api/admissions`
-
-Validates and normalizes admission details, normalizes Indian phone numbers, prevents rapid phone-and-course duplicates, and stores an `Admission` record.
-
-### `POST /api/contact`
-
-Validates and normalizes contact details and stores a `ContactEnquiry` record.
-
-Both endpoints enforce request-size limits, server validation, honeypot bot detection, lightweight rate limiting, and safe error responses.
-
-## Testing
-
-1. Run the application with a configured database.
-2. Submit valid forms through `/admissions` and `/contact`.
-3. Confirm success messages and reference IDs.
-4. Test invalid email, phone, required fields, oversized messages, malformed JSON, duplicate submissions, and rate limits.
-5. Confirm invalid requests do not create database records.
-6. Remove only records clearly labeled as test data.
+Do not put GitHub, Railway, database, or session credentials in source control. Rotate any token that was shared in chat or another non-secret channel.
