@@ -13,6 +13,6 @@ export function Footer() {
       <div><h3>Training</h3><ul>{training.map(item => <li key={item}><Link href="/courses">{item}</Link></li>)}</ul></div>
       <div><h3>Contact</h3><div className="footer-contact"><a href="tel:+919493969696"><Phone />+91 94939 69696</a><p><MapPin /> <span>Kalyandurgam Road,<br />Opp. Zudio, Anantapur</span></p></div><Link className="button button-gold" href="/contact">Talk to a counselor</Link></div>
     </div>
-    <div className="container footer-bottom"><p>© 2026 SaiTech Labs. All Rights Reserved.</p><div><Link href="/privacy">Privacy Policy</Link><Link href="/terms">Terms</Link><Link href="/disclaimer">Disclaimer</Link></div></div>
+    <div className="container footer-bottom"><p>© 2026 SaiTech Labs. All Rights Reserved.</p><div><span className="developer-credit">Developed by Vamshi <span>·</span> <a href="https://www.aasthix.com" target="_blank" rel="noopener noreferrer">aasthix.com</a></span><Link href="/privacy">Privacy Policy</Link><Link href="/terms">Terms</Link><Link href="/disclaimer">Disclaimer</Link></div></div>
   </footer>;
 }
