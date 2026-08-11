@@ -33,6 +33,14 @@ const features = [
   [BadgeCheck, "Experienced IT Professionals"],
 ];
 
+const skillsBoosterTopics = [
+  { icon: "☁️", title: "Cloud Basics", detail: "AWS | GCP | Azure" },
+  { icon: "🤖", title: "AI Basics", detail: "Introduction to AI Models" },
+  { icon: "♾️", title: "DevOps Basics", detail: "CI/CD, Automation & More" },
+  { icon: "📊", title: "Databricks Basics", detail: "Data Engineering & Analytics" },
+  { icon: "💼", title: "Beyond Tech", detail: "Resume Building, Interactive Lessons & Personality Development" },
+];
+
 export default function Home() {
   return <>
     <section id="home" data-nav-section="home" className="home-hero">
@@ -60,6 +68,20 @@ export default function Home() {
     <section className="value-strip"><div className="container value-grid">{values.map(item => <div key={item.label}><strong>{item.value}</strong><span>{item.suffix}</span><small>{item.label}</small></div>)}</div></section>
     <section id="courses" data-nav-section="courses" className="section"><div className="container"><SectionHeading eyebrow="Practical by design" title="Build Skills That Industry Actually Needs" description="Technology fundamentals, practical training, real-world scenarios, communication, resume preparation and interview readiness — combined into one structured learning experience." /><div className="course-grid">{courses.map(course => <CourseCard course={course} key={course.slug} />)}</div></div></section>
     <section id="program" data-nav-section="program" className="section program-section"><div className="container"><SectionHeading eyebrow="Intensive 60-Day Program" title="From Fundamentals to Career Readiness" description="A focused learning journey that moves from strong foundations to practical application and confident interview preparation." light /><ProgramTimeline /><div className="center-action"><Link className="button button-gold" href="/program">Explore the full journey <ArrowRight /></Link></div></div></section>
+    <section className="section skills-booster-section">
+      <div className="container skills-booster-panel">
+        <div className="skills-booster-intro">
+          <p className="eyebrow">Welcome to Sai Techlabs! <span aria-hidden="true">👋</span></p>
+          <p className="skills-booster-tagline">Innovate <span>•</span> Educate <span>•</span> Accelerate</p>
+          <h2><span aria-hidden="true">🚀</span> Your Future Starts With The Right Skills!</h2>
+          <p>Join our 60-Day Complete Skills Booster Program specifically designed for BTech 3rd Year, Final Year, and Passout Students!</p>
+        </div>
+        <div className="skills-booster-topics">
+          <h3><span aria-hidden="true">📚</span> What You&apos;ll Learn:</h3>
+          <ul>{skillsBoosterTopics.map(topic => <li key={topic.title}><span className="topic-icon" aria-hidden="true">{topic.icon}</span><span><strong>{topic.title}:</strong> {topic.detail}</span></li>)}</ul>
+        </div>
+      </div>
+    </section>
     <section className="section soft-bg"><div className="container"><SectionHeading eyebrow="The SaiTech difference" title="Why Choose SaiTech Labs?" description="A deliberate learning environment built for capability, confidence and professional growth." /><div className="feature-grid">{features.map(([Icon, title]) => { const FeatureIcon = Icon; return <article className="feature-card" key={String(title)}><FeatureIcon /><h3>{String(title)}</h3><p>Structured guidance that connects concepts with practical, career-relevant application.</p></article>; })}</div></div></section>
     <section id="about" data-nav-section="about" className="philosophy"><div className="container philosophy-grid"><div><p className="eyebrow">Our training philosophy</p><h2>We Don&apos;t Just Teach Technology.<br /><span>We Build Competence.</span></h2><p>SaiTech Labs does not promise or guarantee jobs. Our objective is to build the technical knowledge, practical exposure, communication skills and confidence students need to perform strongly in interviews and begin their technology careers.</p></div><div className="competence-list">{[["01", "Knowledge"], ["02", "Practice"], ["03", "Confidence"], ["04", "Career Readiness"]].map(([n, title]) => <div key={n}><span>{n}</span><strong>{title}</strong></div>)}</div></div></section>
     <section id="trainers" data-nav-section="trainers" className="section"><div className="container"><SectionHeading eyebrow="Meet the mentors" title="Meet Our Industry Experts" description="Learn from professionals with real-world technology experience." /><div className="trainer-grid home-trainers">{trainers.slice(0, 3).map(trainer => <TrainerCard key={trainer.name} trainer={trainer} />)}</div><div className="center-action"><Link className="button button-outline" href="/trainers">Meet all trainers <ArrowRight /></Link></div></div></section>
