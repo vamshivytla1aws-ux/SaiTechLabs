@@ -5,6 +5,13 @@ import { STUDENT_COOKIE, verifyStudentSession } from "@/lib/student-session";
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  if (path.startsWith("/interview/") || path.startsWith("/api/interviews/")) {
+    const response = NextResponse.next();
+    response.headers.set("Cache-Control", "private, no-store, max-age=0");
+    response.headers.set("Referrer-Policy", "no-referrer");
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    return response;
+  }
   if (path.startsWith("/student") || path.startsWith("/api/student")) {
     const isStudentLogin = path === "/student/login" || path === "/api/student/login";
     const student = await verifyStudentSession(request.cookies.get(STUDENT_COOKIE)?.value);
@@ -28,4 +35,4 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-export const config = { matcher: ["/admin/:path*", "/api/admin/:path*", "/student/:path*", "/api/student/:path*"] };
+export const config = { matcher: ["/admin/:path*", "/api/admin/:path*", "/student/:path*", "/api/student/:path*", "/interview/:path*", "/api/interviews/:path*"] };

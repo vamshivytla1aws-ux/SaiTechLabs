@@ -11,6 +11,7 @@ Official website and private staff admin portal for `https://www.saitechlabs.in`
 - Passwords hashed with bcrypt (cost 12); no browser storage or client-side database access
 - Railway `Web` and `Postgres` services; migrations run as the Web pre-deploy command
 - GitHub `main` is connected to Railway automatic deployments
+- Admissions AI mock interviews use the OpenAI Responses API with schema-validated structured outputs
 
 The admin portal includes live dashboard metrics, searchable/filterable/paginated leads, lead statuses and follow-ups, append-only internal notes, contact enquiry management, safe filtered CSV export, audit events, password change and logout. It is excluded from robots and is not linked from the public navigation.
 
@@ -24,9 +25,25 @@ AUTH_SECRET="a-cryptographically-random-secret-of-at-least-32-characters"
 INITIAL_ADMIN_NAME="SaiTech Labs Administrator"
 INITIAL_ADMIN_EMAIL="admin@example.com"
 INITIAL_ADMIN_PASSWORD="a-strong-temporary-password"
+OPENAI_API_KEY="your_key_here"
+OPENAI_INTERVIEW_MODEL="gpt-5.5"
+APP_URL="https://www.saitechlabs.in"
+SMTP_HOST="smtp.example.com"
+SMTP_PORT="587"
+SMTP_USER="smtp_username"
+SMTP_PASSWORD="smtp_password"
+SMTP_FROM="SaiTech Labs <admissions@saitechlabs.in>"
 ```
 
 `AUTH_SECRET` is required for admin sessions. Railway should supply `DATABASE_URL` through a Postgres service reference and store `AUTH_SECRET` as a private Web service variable. The three `INITIAL_ADMIN_*` values are only needed while running the one-time bootstrap command and do not need to remain configured.
+
+`OPENAI_API_KEY` and `OPENAI_INTERVIEW_MODEL` are read only by server-side interview services. SMTP variables are required to send secure invitations; a failed email attempt does not move the interview to `INVITED`. `APP_URL` must remain the canonical `https://www.saitechlabs.in` URL. Do not prefix secret variables with `NEXT_PUBLIC_`.
+
+## Phase 1 AI mock interviews
+
+From an Admission detail page, an authorized admin can create AI, manual, or mixed text interviews; generate and review hidden reference answers and rubrics; reorder and approve questions; and send or rotate a secure invitation. The candidate route is `/interview/[token]` and has no public or admin navigation. Links use high-entropy tokens whose SHA-256 hashes—not raw tokens—are stored in PostgreSQL.
+
+Candidate answers autosave, the deadline is calculated from the server start time, paste/copy and window-leave events are recorded, and submission locks all answers. Evaluation uses one structured Responses API call for answered questions; blank answers receive zero locally. Final percentages and result thresholds are calculated in backend code. Automated tests never call the live OpenAI API.
 
 ## Local development
 

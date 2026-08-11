@@ -64,6 +64,66 @@ enum AdminAuditAction {
   TRAINER_UPDATED
   EXPORT_CREATED
   PASSWORD_CHANGED
+  INTERVIEW_CREATED
+  INTERVIEW_UPDATED
+  INTERVIEW_INVITED
+  INTERVIEW_CANCELLED
+  INTERVIEW_EVALUATED
+}
+
+enum InterviewType {
+  AI
+  MANUAL
+  MIXED
+}
+
+enum InterviewDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  MIXED
+}
+
+enum InterviewStatus {
+  DRAFT
+  READY
+  INVITED
+  OPENED
+  IN_PROGRESS
+  SUBMITTED
+  EVALUATING
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+enum InterviewResult {
+  NOT_EVALUATED
+  STRONG_PASS
+  PASS
+  REVIEW
+  FAIL
+}
+
+enum InterviewQuestionSource {
+  AI
+  MANUAL
+}
+
+enum InterviewVerdict {
+  EXCELLENT
+  GOOD
+  PARTIAL
+  WEAK
+  INCORRECT
+  BLANK
+}
+
+enum InterviewIntegrityEventType {
+  PASTE_ATTEMPT
+  COPY_ATTEMPT
+  TAB_HIDDEN
+  WINDOW_BLUR
 }
 
 enum BatchMode {
@@ -178,6 +238,7 @@ model Admission {
   assignedAdmin   AdminUser?          @relation("AssignedAdmissions", fields: [assignedAdminId], references: [id], onDelete: SetNull)
   followUps       AdmissionFollowUp[]
   enrollment      Enrollment?
+  mockInterviews  MockInterview[]
 
   @@index([createdAt])
   @@index([phone])
@@ -222,6 +283,7 @@ model AdminUser {
   payments           Payment[]
   studentNotes       StudentNote[]
   trainerProfile     Trainer?
+  createdInterviews  MockInterview[]       @relation("InterviewCreator")
 
   @@index([isActive])
 }
@@ -564,4 +626,109 @@ model AdminAuditLog {
   @@index([adminId, createdAt])
   @@index([action, createdAt])
   @@index([entityType, entityId])
+}
+
+model MockInterview {
+  id                  String              @id @default(cuid())
+  admissionId         String
+  createdByAdminId    String
+  type                InterviewType
+  technologies        String[]
+  experienceRange     String
+  difficulty          InterviewDifficulty
+  questionCount       Int                 @default(10)
+  aiQuestionCount     Int                 @default(0)
+  manualQuestionCount Int                 @default(0)
+  durationMinutes     Int                 @default(45)
+  passScore           Int                 @default(70)
+  expiresAt           DateTime
+  status              InterviewStatus     @default(DRAFT)
+  result              InterviewResult     @default(NOT_EVALUATED)
+  tokenHash           String?             @unique
+  openedAt            DateTime?
+  startedAt           DateTime?
+  submittedAt         DateTime?
+  evaluatedAt         DateTime?
+  cancelledAt         DateTime?
+  overallScore        Float?
+  totalScore          Float?
+  totalMaxScore       Float?
+  evaluationModel     String?
+  evaluationError     String?
+  internalNotes       String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  admission           Admission           @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+  createdBy           AdminUser           @relation("InterviewCreator", fields: [createdByAdminId], references: [id], onDelete: Restrict)
+  questions           MockInterviewQuestion[]
+  answers             MockInterviewAnswer[]
+  integrityEvents     MockInterviewIntegrityEvent[]
+
+  @@index([admissionId, createdAt])
+  @@index([status, expiresAt])
+  @@index([createdByAdminId])
+}
+
+model MockInterviewQuestion {
+  id              String                    @id @default(cuid())
+  interviewId     String
+  position        Int
+  source          InterviewQuestionSource
+  technology      String
+  difficulty      InterviewDifficulty
+  questionText    String
+  referenceAnswer String
+  rubric           Json
+  maxScore         Float                     @default(10)
+  approvedAt       DateTime?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  interview       MockInterview             @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  answer           MockInterviewAnswer?
+
+  @@unique([interviewId, position])
+  @@index([interviewId, source])
+}
+
+model MockInterviewAnswer {
+  id            String                   @id @default(cuid())
+  interviewId   String
+  questionId    String                   @unique
+  answerText    String                   @default("")
+  savedAt       DateTime                 @default(now())
+  submittedAt   DateTime?
+  interview     MockInterview            @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  question      MockInterviewQuestion    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  evaluation    MockInterviewEvaluation?
+
+  @@index([interviewId, savedAt])
+}
+
+model MockInterviewEvaluation {
+  id                 String                   @id @default(cuid())
+  answerId           String                   @unique
+  score              Float
+  maxScore           Float
+  technicalAccuracy Float
+  completeness       Float
+  practicalKnowledge Float
+  clarity            Float
+  verdict            InterviewVerdict
+  strengths          String[]
+  missingPoints      String[]
+  feedback           String
+  model              String
+  createdAt          DateTime                 @default(now())
+  answer             MockInterviewAnswer      @relation(fields: [answerId], references: [id], onDelete: Cascade)
+}
+
+model MockInterviewIntegrityEvent {
+  id          String                      @id @default(cuid())
+  interviewId String
+  type        InterviewIntegrityEventType
+  occurredAt  DateTime                    @default(now())
+  metadata    Json?
+  interview   MockInterview               @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@index([interviewId, occurredAt])
 }

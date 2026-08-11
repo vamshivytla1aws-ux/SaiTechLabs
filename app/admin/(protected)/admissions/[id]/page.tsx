@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Mail, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, BrainCircuit, Mail, MessageCircle, Phone } from "lucide-react";
 import { LeadUpdateForm, NoteForm } from "@/components/admin/AdminForms";
 import { AdmissionConversionForm } from "@/components/admin/AdmissionConversionForm";
 import { requireAdminPermission } from "@/lib/admin-auth";
@@ -14,7 +14,7 @@ export default async function AdmissionDetail({ params }: { params: Promise<{ id
   await requireAdminPermission("admissions:manage");
   const { id } = await params;
   const [row, batches] = await Promise.all([
-    getDb().admission.findUnique({ where: { id }, include: { enrollment: true, notes: { orderBy: { createdAt: "desc" }, include: { createdBy: { select: { name: true } } } } } }),
+    getDb().admission.findUnique({ where: { id }, include: { enrollment: true, mockInterviews: { orderBy: { createdAt: "desc" } }, notes: { orderBy: { createdAt: "desc" }, include: { createdBy: { select: { name: true } } } } } }),
     getDb().batch.findMany({ where: { status: { in: ["PLANNED", "OPEN", "ACTIVE"] } }, orderBy: { startDate: "desc" }, include: { course: true } }),
   ]);
   if (!row) notFound();
@@ -29,6 +29,7 @@ export default async function AdmissionDetail({ params }: { params: Promise<{ id
         <section className="admin-panel"><header><h2>Internal notes</h2><small>Append-only activity history</small></header><NoteForm id={row.id} /><div className="admin-notes">{row.notes.map((note) => <article key={note.id}><p>{note.note}</p><small>{note.createdBy.name} · {formatDate(note.createdAt)}</small></article>)}{!row.notes.length && <p className="admin-empty">No notes added yet.</p>}</div></section>
       </div>
       <aside className="admin-detail-side">
+        <section className="admin-panel interview-admission-panel"><header><h2>AI mock interviews</h2><BrainCircuit /></header><Link className="admin-primary" href={`/admin/admissions/${row.id}/interviews/new`}>Create mock interview</Link>{row.mockInterviews.map((interview) => <Link className="interview-admission-row" href={`/admin/interviews/${interview.id}`} key={interview.id}><span><strong>{interview.technologies.join(" + ")}</strong><small>{formatDate(interview.createdAt)}</small></span><span className={`admin-status status-${interview.status.toLowerCase()}`}>{interview.overallScore !== null ? `${interview.overallScore}% · ${display(interview.result)}` : display(interview.status)}</span></Link>)}{!row.mockInterviews.length && <p className="admin-empty">No mock interviews yet.</p>}</section>
         <section className="admin-panel"><header><h2>Lead action</h2></header><LeadUpdateForm id={row.id} status={row.leadStatus} followUp={followUp} /></section>
         {row.enrollment ? <section className="admin-panel"><h2>Converted</h2><Link className="admin-primary" href={`/admin/students/${row.enrollment.studentId}`}>Open student record</Link></section> : <section className="admin-panel"><h2>Convert to student</h2><AdmissionConversionForm id={row.id} aadhaarNumber={row.aadhaarNumber} batches={batches.map((batch) => ({ id: batch.id, label: `${batch.course.name} · ${batch.code}` }))} /></section>}
         <section className="admin-panel"><header><h2>Contact</h2></header><div className="admin-contact-actions"><a href={`tel:${row.phone}`}><Phone />Call</a><a href={`https://wa.me/${row.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer"><MessageCircle />WhatsApp</a><a href={`mailto:${row.email}`}><Mail />Email</a></div></section>
