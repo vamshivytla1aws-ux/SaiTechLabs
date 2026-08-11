@@ -5,6 +5,7 @@ import { Menu, Phone, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
+import { TechMicroAnimation } from "./TechMicroAnimation";
 
 const links = [
   { label: "Home", href: "/", section: "home" },
@@ -54,6 +55,7 @@ export function Header() {
     <header className={`site-header ${scrolled ? "compact" : ""}`}>
       <div className="container nav-wrap">
         <Logo />
+        <TechMicroAnimation />
         <nav className="desktop-nav" aria-label="Primary navigation">
           {links.map(({ label, href, section }) => {
             const state = linkState(href, section);
