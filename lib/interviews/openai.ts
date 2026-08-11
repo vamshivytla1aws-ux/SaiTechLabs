@@ -1,5 +1,5 @@
-import OpenAI from "openai";
 import { evaluationBatchSchema, generatedQuestionsSchema } from "@/lib/interviews/config";
+import { getOpenAIClient, getOpenAIModel } from "@/lib/openai/client";
 
 const questionOutputSchema = {
   type: "object", additionalProperties: false, required: ["questions"], properties: {
@@ -45,11 +45,7 @@ const referenceOutputSchema = {
 } as const;
 
 function clientAndModel() {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("OpenAI is not configured. Add OPENAI_API_KEY to Railway variables.");
-  const model = process.env.OPENAI_INTERVIEW_MODEL?.trim();
-  if (!model) throw new Error("OpenAI interview model is not configured. Add OPENAI_INTERVIEW_MODEL to Railway variables.");
-  return { client: new OpenAI({ apiKey }), model };
+  return { client: getOpenAIClient(), model: getOpenAIModel() };
 }
 
 export async function generateInterviewQuestions(input: { technologies: readonly string[]; experienceRange: string; difficulty: string; count: number; existingQuestions: string[] }) {

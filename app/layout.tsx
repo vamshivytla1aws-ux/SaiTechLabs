@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { MotionEffects } from "@/components/MotionEffects";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { AssistantLoader } from "@/components/assistant/AssistantLoader";
 import "./globals.css";
 
 const bodyFont = Manrope({ variable: "--font-body", subsets: ["latin"] });
@@ -19,5 +20,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body className={`${bodyFont.variable} ${displayFont.variable}`}><a className="skip-link" href="#main-content">Skip to content</a><Header /><main id="main-content">{children}</main><Footer /><WhatsAppButton /><MotionEffects /></body></html>;
+  return <html lang="en"><body className={`${bodyFont.variable} ${displayFont.variable}`}><a className="skip-link" href="#main-content">Skip to content</a><Header /><main id="main-content">{children}</main><Footer /><AssistantLoader /><WhatsAppButton /><MotionEffects /></body></html>;
 }
