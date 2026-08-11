@@ -4,7 +4,7 @@ import { AlertCircle, CheckCircle2, Send } from "lucide-react";
 import { FormEvent, useState } from "react";
 import type { AdmissionFormData, ApiResponse } from "@/types/forms";
 
-const initialData: AdmissionFormData = { studentName: "", email: "", phone: "", course: "", qualification: "", currentStatus: "", graduationYear: "", collegeName: "", state: "", trainingMode: "", message: "", consent: false, website: "" };
+const initialData: AdmissionFormData = { studentName: "", aadhaarNumber: "", email: "", phone: "", course: "", qualification: "", currentStatus: "", graduationYear: "", collegeName: "", state: "", trainingMode: "", message: "", consent: false, website: "" };
 
 export function AdmissionForm() {
   const [data, setData] = useState(initialData);
@@ -31,6 +31,7 @@ export function AdmissionForm() {
     <div className="honeypot" aria-hidden="true"><label>Website<input tabIndex={-1} autoComplete="off" value={data.website} onChange={e => update("website", e.target.value)} /></label></div>
     <div className="form-grid">
       <label>Student Name *<input required minLength={2} maxLength={100} autoComplete="name" value={data.studentName} onChange={e => update("studentName", e.target.value)} placeholder="Enter your full name" /></label>
+      <label>Aadhaar Card Number <span>(Optional)</span><input inputMode="numeric" pattern="[0-9]{12}" maxLength={12} autoComplete="off" value={data.aadhaarNumber} onChange={e => update("aadhaarNumber", e.target.value.replace(/\D/g, "").slice(0, 12))} placeholder="12-digit Aadhaar number" /></label>
       <label>Email *<input required maxLength={254} type="email" autoComplete="email" value={data.email} onChange={e => update("email", e.target.value)} placeholder="you@example.com" /></label>
       <label>Phone Number *<input required type="tel" pattern="[0-9+ ()-]{10,20}" autoComplete="tel" value={data.phone} onChange={e => update("phone", e.target.value)} placeholder="+91 00000 00000" /></label>
       <label>Select Course *<select required value={data.course} onChange={e => update("course", e.target.value)}><option value="">Choose a course</option><option>60-Day Intensive Program</option><option>Cloud</option><option>AI & Machine Learning</option><option>DevOps</option><option>Databricks & Data Engineering</option><option>Interview Preparation</option></select></label>

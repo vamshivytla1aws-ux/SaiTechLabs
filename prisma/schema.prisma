@@ -156,6 +156,7 @@ enum CertificateStatus {
 model Admission {
   id              String              @id @default(cuid())
   studentName     String
+  aadhaarNumber   String?
   email           String
   phone           String
   course          String
@@ -266,6 +267,7 @@ model Batch {
 model Student {
   id             String             @id @default(cuid())
   studentCode    String             @unique
+  aadhaarNumber  String?            @unique
   fullName       String
   email          String
   phone          String

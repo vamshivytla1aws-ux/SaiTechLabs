@@ -1,5 +1,6 @@
 export type AdmissionFormData = {
   studentName: string;
+  aadhaarNumber: string;
   email: string;
   phone: string;
   course: string;
