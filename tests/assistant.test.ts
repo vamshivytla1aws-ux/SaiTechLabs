@@ -23,7 +23,8 @@ test("local scope control accepts site questions and blocks general or injection
 });
 
 test("retrieval prioritizes relevant website sections", () => {
-  assert.equal(retrieveKnowledge("Who are your trainers and founder?", "/trainers", approvedWebsiteKnowledge, 1)[0]?.id, "trainers");
+  assert.equal(retrieveKnowledge("Who are the trainers?", "/", approvedWebsiteKnowledge, 1)[0]?.id, "trainers");
+  assert.equal(retrieveKnowledge("Who is the founder?", "/", approvedWebsiteKnowledge, 1)[0]?.id, "trainers");
   assert.equal(retrieveKnowledge("How can I contact SaiTech Labs?", "/contact", approvedWebsiteKnowledge, 1)[0]?.id, "contact");
   assert.equal(retrieveKnowledge("What is covered in the 60 day program?", "/program", approvedWebsiteKnowledge, 1)[0]?.id, "program");
 });
