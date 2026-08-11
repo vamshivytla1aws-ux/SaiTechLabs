@@ -28,11 +28,8 @@ INITIAL_ADMIN_PASSWORD="a-strong-temporary-password"
 OPENAI_API_KEY="your_key_here"
 OPENAI_INTERVIEW_MODEL="gpt-5.5"
 APP_URL="https://www.saitechlabs.in"
-SMTP_HOST="smtp.example.com"
-SMTP_PORT="587"
-SMTP_USER="smtp_username"
-SMTP_PASSWORD="smtp_password"
-SMTP_FROM="SaiTech Labs <admissions@saitechlabs.in>"
+RESEND_API_KEY="re_your_key_here"
+RESEND_FROM="SaiTech Labs <admissions@saitechlabs.in>"
 ```
 
 `AUTH_SECRET` is required for admin sessions. Railway should supply `DATABASE_URL` through a Postgres service reference and store `AUTH_SECRET` as a private Web service variable. The three `INITIAL_ADMIN_*` values are only needed while running the one-time bootstrap command and do not need to remain configured.
