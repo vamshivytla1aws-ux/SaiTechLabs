@@ -25,7 +25,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const target = parsed.data.questionId ? interview.questions.find((question) => question.id === parsed.data.questionId && question.source === "AI") : null;
     if (parsed.data.questionId && !target) return adminError(404, "AI question not found.");
     const preserved = interview.questions.filter((question) => question.id !== target?.id && (target || question.source !== "AI"));
-    const count = target ? 1 : interview.aiQuestionCount;
+    const count = target ? 1 : interview.questionCount - preserved.length;
     if (!count) return adminError(400, "This interview does not require AI questions.");
     const generated = await generateInterviewQuestions({ technologies: interview.technologies, experienceRange: interview.experienceRange, difficulty: interview.difficulty, count, existingQuestions: preserved.map((question) => question.questionText) });
     const allText = [...preserved.map((question) => question.questionText), ...generated.questions.map((question) => question.question)];
@@ -40,8 +40,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         for (let index = 0; index < manual.length; index++) await tx.mockInterviewQuestion.update({ where: { id: manual[index].id }, data: { position: index + 1 } });
         await tx.mockInterviewQuestion.createMany({ data: generated.questions.map((question, index) => ({ interviewId: id, position: manual.length + index + 1, source: "AI", technology: question.technology, difficulty: question.difficulty, questionText: question.question, referenceAnswer: question.referenceAnswer, rubric: question.rubric, maxScore: question.maxScore })) });
       }
-      const countNow = await tx.mockInterviewQuestion.count({ where: { interviewId: id } });
-      await tx.mockInterview.update({ where: { id }, data: { status: countNow === interview.questionCount ? "READY" : "DRAFT", evaluationModel: generated.model } });
+      const currentQuestions = await tx.mockInterviewQuestion.findMany({ where: { interviewId: id }, select: { source: true } });
+      const aiQuestionCount = currentQuestions.filter(question => question.source === "AI").length;
+      const manualQuestionCount = currentQuestions.length - aiQuestionCount;
+      await tx.mockInterview.update({ where: { id }, data: { status: currentQuestions.length === interview.questionCount ? "READY" : "DRAFT", evaluationModel: generated.model, type: manualQuestionCount ? "MIXED" : "AI", aiQuestionCount, manualQuestionCount } });
     });
     await writeAudit(admin.id, "INTERVIEW_UPDATED", "MockInterview", id, { generated: count, model: generated.model });
     return NextResponse.json({ success: true, message: target ? "Question regenerated." : `${count} AI questions generated.` });
