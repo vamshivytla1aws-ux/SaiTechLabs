@@ -5,7 +5,7 @@ import { CandidateInterview } from "@/components/interviews/CandidateInterview";
 import { findCandidateInterview, safeCandidateInterview } from "@/lib/interviews/candidate";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Secure Mock Interview | SaiTech Labs", robots: { index: false, follow: false, noarchive: true }, referrer: "no-referrer" };
+export const metadata: Metadata = { title: "Secure Mock AI Interview | SaiTech Labs", robots: { index: false, follow: false, noarchive: true }, referrer: "no-referrer" };
 
 export default async function InterviewPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;

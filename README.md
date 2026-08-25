@@ -11,7 +11,7 @@ Official website and private staff admin portal for `https://www.saitechlabs.in`
 - Passwords hashed with bcrypt (cost 12); no browser storage or client-side database access
 - Railway `Web` and `Postgres` services; migrations run as the Web pre-deploy command
 - GitHub `main` is connected to Railway automatic deployments
-- Admissions AI mock interviews use the OpenAI Responses API with schema-validated structured outputs
+- Admissions Mock AI Interviews use the OpenAI Responses API with schema-validated structured outputs
 
 The admin portal includes live dashboard metrics, searchable/filterable/paginated leads, lead statuses and follow-ups, append-only internal notes, contact enquiry management, safe filtered CSV export, audit events, password change and logout. It is excluded from robots and is not linked from the public navigation.
 
@@ -36,7 +36,7 @@ RESEND_FROM="SaiTech Labs <admissions@saitechlabs.in>"
 
 `OPENAI_API_KEY` and `OPENAI_INTERVIEW_MODEL` are read only by server-side interview services. SMTP variables are required to send secure invitations; a failed email attempt does not move the interview to `INVITED`. `APP_URL` must remain the canonical `https://www.saitechlabs.in` URL. Do not prefix secret variables with `NEXT_PUBLIC_`.
 
-## Phase 1 AI mock interviews
+## Phase 1 Mock AI Interviews
 
 From an Admission detail page, an authorized admin can create AI, manual, or mixed text interviews; generate and review hidden reference answers and rubrics; reorder and approve questions; and send or rotate a secure invitation. The candidate route is `/interview/[token]` and has no public or admin navigation. Links use high-entropy tokens whose SHA-256 hashes—not raw tokens—are stored in PostgreSQL.
 
