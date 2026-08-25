@@ -8,6 +8,6 @@ export function getDb() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("Database configuration is unavailable.");
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
-  if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+  globalForPrisma.prisma = prisma;
   return prisma;
 }
