@@ -338,6 +338,8 @@ model Student {
   collegeName    String
   state          String
   currentStatus  String
+  isActive       Boolean            @default(true)
+  archivedAt     DateTime?
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   enrollments    Enrollment[]
@@ -352,6 +354,7 @@ model Student {
   @@index([email])
   @@index([phone])
   @@index([collegeName])
+  @@index([isActive, createdAt])
   @@index([createdAt])
 }
 

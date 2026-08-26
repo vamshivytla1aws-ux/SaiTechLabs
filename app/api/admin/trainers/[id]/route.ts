@@ -1,0 +1,13 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { requireAdminApi } from "@/lib/admin-auth";
+import { can } from "@/lib/admin-permissions";
+import { adminError, sameOrigin, writeAudit } from "@/lib/admin-security";
+import { readJsonBody } from "@/lib/api";
+import { getDb } from "@/lib/db";
+import { normalEmail, normalPhone } from "@/lib/operations";
+
+const schema = z.object({ name: z.string().trim().min(2).max(100).optional(), email: z.email().max(254).transform(normalEmail).optional(), phone: z.string().min(10).max(20).transform(normalPhone).optional(), specialization: z.string().trim().min(2).max(200).optional(), bio: z.string().trim().max(2000).nullable().optional(), experienceSummary: z.string().trim().max(1000).nullable().optional(), isActive: z.boolean().optional() }).strict();
+async function admin(request: Request) { if (!sameOrigin(request)) return null; const user = await requireAdminApi(); return user && can(user.role, "trainers:manage") ? user : null; }
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) { const user = await admin(request); if (!user) return adminError(403, "Unauthorized or forbidden."); const { id } = await params; try { const parsed = schema.safeParse(await readJsonBody(request)); if (!parsed.success) return adminError(400, parsed.error.issues[0]?.message || "Invalid trainer information."); await getDb().trainer.update({ where: { id }, data: parsed.data }); await writeAudit(user.id, "TRAINER_UPDATED", "Trainer", id, { action: parsed.data.isActive === true ? "restored" : "updated" }); return NextResponse.json({ success: true }); } catch { return adminError(409, "Trainer details conflict with another record or the trainer was not found."); } }
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) { const user = await admin(request); if (!user) return adminError(403, "Unauthorized or forbidden."); const { id } = await params; try { const db = getDb(); await db.$transaction(async tx => { const trainer = await tx.trainer.update({ where: { id }, data: { isActive: false }, select: { adminUserId: true } }); if (trainer.adminUserId) await tx.adminUser.update({ where: { id: trainer.adminUserId }, data: { isActive: false, sessionVersion: { increment: 1 } } }); }); await writeAudit(user.id, "TRAINER_UPDATED", "Trainer", id, { action: "deactivated" }); return NextResponse.json({ success: true, message: "Trainer deactivated. Login access was disabled; assignments and history were retained." }); } catch { return adminError(404, "Trainer not found."); } }
